@@ -294,13 +294,15 @@ class CFR_Admin {
 				? sprintf( '<a href="%1$s"><strong>%2$s</strong></a>', esc_url( $edit_link ), esc_html( get_the_title( $post ) ) )
 				: '<strong>' . esc_html( get_the_title( $post ) ) . '</strong>';
 
-			printf(
-				'<li style="margin-bottom:8px;">%1$s <br><span style="color:#646970;">%2$s</span></li>',
-				$title,
+			echo wp_kses_post(
 				sprintf(
-					/* translators: %s: month and year, e.g. "March 2025" */
-					esc_html__( "Hasn't been updated since %s", 'content-freshness-reminder' ),
-					esc_html( CFR_Scanner::get_freshness_label( $post ) )
+					'<li style="margin-bottom:8px;">%1$s <br><span style="color:#646970;">%2$s</span></li>',
+					$title,
+					sprintf(
+						/* translators: %s: month and year, e.g. "March 2025" */
+						esc_html__( "Hasn't been updated since %s", 'content-freshness-reminder' ),
+						esc_html( CFR_Scanner::get_freshness_label( $post ) )
+					)
 				)
 			);
 		}
