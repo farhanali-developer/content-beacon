@@ -48,6 +48,8 @@ If a dismissible notice appears on the Dashboard, dismissing it snoozes it for t
 
 Enable "Weekly email digest" on the settings page to have a summary of stale content emailed to the site's admin address once a week, via a `weekly` WP-Cron schedule the plugin registers.
 
+The digest is sent through WordPress's built-in `wp_mail()` — the plugin doesn't configure SMTP itself, so delivery depends on your site's mail setup. If digest emails aren't arriving (common on hosts that block PHP's default `mail()`), install an SMTP plugin such as WP Mail SMTP to route mail through a real provider.
+
 ## License
 
 GPLv2 or later — see [LICENSE.txt](LICENSE.txt) or https://www.gnu.org/licenses/gpl-2.0.html

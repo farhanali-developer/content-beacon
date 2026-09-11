@@ -252,6 +252,9 @@ class CFR_Admin {
 								);
 								?>
 							</label>
+							<p class="description">
+								<?php esc_html_e( 'Sent via wp_mail(). Delivery depends on your site\'s mail setup — if emails go missing, install an SMTP plugin (e.g. WP Mail SMTP) to route them through a real mail provider.', 'content-freshness-reminder' ); ?>
+							</p>
 						</td>
 					</tr>
 				</table>

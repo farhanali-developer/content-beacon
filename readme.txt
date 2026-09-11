@@ -48,6 +48,10 @@ Yes, from Settings > Content Freshness, anywhere from 1 to 60 months.
 
 Yes, any public post type can be selected on the settings page.
 
+= Does the weekly email digest need SMTP configured? =
+
+The digest is sent with WordPress's built-in `wp_mail()`, so no setup is required from the plugin itself — but delivery depends on your site's mail configuration. Many hosts block or throttle PHP's default `mail()` function, so if digest emails aren't arriving, install an SMTP plugin (e.g. WP Mail SMTP) to route mail through a real provider.
+
 == Changelog ==
 
 = 1.0.0 =
