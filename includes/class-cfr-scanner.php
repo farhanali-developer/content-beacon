@@ -75,9 +75,10 @@ class CFR_Scanner {
 	 * @param array $args {
 	 *     Optional overrides.
 	 *
-	 *     @type int $limit Max number of results. 0 for no limit.
+	 *     @type int    $limit  Max number of results. 0 for no limit.
+	 *     @type string $fields Passed straight to WP_Query (e.g. 'ids' for a lightweight count-only query).
 	 * }
-	 * @return WP_Post[]
+	 * @return WP_Post[]|int[]
 	 */
 	public static function get_stale_content( $args = array() ) {
 		$settings = self::get_settings();
@@ -86,33 +87,40 @@ class CFR_Scanner {
 			return array();
 		}
 
-		$limit = isset( $args['limit'] ) ? (int) $args['limit'] : 0;
+		$limit  = isset( $args['limit'] ) ? (int) $args['limit'] : 0;
 		$cutoff = gmdate( 'Y-m-d H:i:s', self::get_cutoff_timestamp( $settings['threshold_months'] ) );
 
-		$query = new WP_Query(
-			array(
-				'post_type'              => $settings['post_types'],
-				'post_status'            => 'publish',
-				'posts_per_page'         => $limit > 0 ? $limit : -1,
-				'orderby'                => 'modified',
-				'order'                  => 'ASC',
-				'date_query'             => array(
-					array(
-						'column' => 'post_modified_gmt',
-						'before' => $cutoff,
-					),
+		$query_args = array(
+			'post_type'              => $settings['post_types'],
+			'post_status'            => 'publish',
+			'posts_per_page'         => $limit > 0 ? $limit : -1,
+			'orderby'                => 'modified',
+			'order'                  => 'ASC',
+			'date_query'             => array(
+				array(
+					'column' => 'post_modified_gmt',
+					'before' => $cutoff,
 				),
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
+			),
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
 		);
+
+		if ( ! empty( $args['fields'] ) ) {
+			$query_args['fields'] = $args['fields'];
+		}
+
+		$query = new WP_Query( $query_args );
 
 		return $query->posts;
 	}
 
 	/**
 	 * Count of stale content, cached for a day to keep admin screens fast.
+	 *
+	 * Uses an ids-only query so a cache miss doesn't hydrate every stale
+	 * post's full object just to count them.
 	 *
 	 * @return int
 	 */
@@ -123,7 +131,7 @@ class CFR_Scanner {
 			return (int) $cached;
 		}
 
-		$count = count( self::get_stale_content() );
+		$count = count( self::get_stale_content( array( 'fields' => 'ids' ) ) );
 		set_transient( 'cfr_stale_count', $count, DAY_IN_SECONDS );
 
 		return $count;
