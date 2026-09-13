@@ -1,0 +1,23 @@
+.freshmark-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.6;
+}
+
+.freshmark-badge-stale {
+	background: #fbeaea;
+	color: #a0281f;
+}
+
+.freshmark-badge-fresh {
+	background: #eafbea;
+	color: #1f7a2e;
+}
+
+.freshmark-badge-date {
+	color: #646970;
+	font-size: 12px;
+}

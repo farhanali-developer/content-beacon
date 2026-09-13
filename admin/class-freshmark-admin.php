@@ -3,37 +3,64 @@
  * Admin-side UI: settings page, dashboard widget, admin notice, and the
  * post list "Freshness" column.
  *
- * @package Content_Freshness_Reminder
+ * @package Freshmark
  */
 
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-class CFR_Admin {
+class FRESHMARK_Admin {
 
-	const COLUMN_KEY       = 'cfr_freshness';
-	const SETTINGS_GROUP   = 'cfr_settings_group';
-	const SETTINGS_SLUG    = 'cfr-settings';
-	const DISMISS_META_KEY = 'cfr_notice_dismissed_until';
-	const NONCE_ACTION     = 'cfr_dismiss_notice';
+	const COLUMN_KEY       = 'freshmark_freshness';
+	const SETTINGS_GROUP   = 'freshmark_settings_group';
+	const SETTINGS_SLUG    = 'freshmark-settings';
+	const DISMISS_META_KEY = 'freshmark_notice_dismissed_until';
+	const NONCE_ACTION     = 'freshmark_dismiss_notice';
 
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
 		add_action( 'admin_notices', array( $this, 'maybe_render_notice' ) );
-		add_action( 'wp_ajax_cfr_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
-		add_filter( 'plugin_action_links_' . CFR_PLUGIN_BASENAME, array( $this, 'add_settings_link' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		add_action( 'wp_ajax_freshmark_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
+		add_filter( 'plugin_action_links_' . FRESHMARK_PLUGIN_BASENAME, array( $this, 'add_settings_link' ) );
 
 		$this->register_column_hooks();
+	}
+
+	/**
+	 * Enqueue the badge CSS on post list screens and the dismiss-notice JS on the Dashboard.
+	 *
+	 * @param string $hook_suffix Current admin page hook, e.g. 'edit.php', 'index.php'.
+	 */
+	public function enqueue_assets( $hook_suffix ) {
+		if ( 'edit.php' === $hook_suffix ) {
+			wp_enqueue_style(
+				'freshmark-admin',
+				FRESHMARK_PLUGIN_URL . 'admin/css/freshmark-admin.css',
+				array(),
+				FRESHMARK_VERSION
+			);
+		}
+
+		if ( 'index.php' === $hook_suffix ) {
+			wp_enqueue_script(
+				'freshmark-admin',
+				FRESHMARK_PLUGIN_URL . 'admin/js/freshmark-admin.js',
+				array(),
+				FRESHMARK_VERSION,
+				true
+			);
+		}
 	}
 
 	/**
 	 * Wire up the "Freshness" column for every monitored post type.
 	 */
 	private function register_column_hooks() {
-		$settings = CFR_Scanner::get_settings();
+		$settings = FRESHMARK_Scanner::get_settings();
 
 		foreach ( $settings['post_types'] as $post_type ) {
 			add_filter( "manage_{$post_type}_posts_columns", array( $this, 'add_freshness_column' ) );
@@ -52,13 +79,13 @@ class CFR_Admin {
 
 		foreach ( $columns as $key => $label ) {
 			if ( 'date' === $key ) {
-				$new_columns[ self::COLUMN_KEY ] = __( 'Freshness', 'content-freshness-reminder' );
+				$new_columns[ self::COLUMN_KEY ] = __( 'Freshness', 'freshmark' );
 			}
 			$new_columns[ $key ] = $label;
 		}
 
 		if ( ! isset( $new_columns[ self::COLUMN_KEY ] ) ) {
-			$new_columns[ self::COLUMN_KEY ] = __( 'Freshness', 'content-freshness-reminder' );
+			$new_columns[ self::COLUMN_KEY ] = __( 'Freshness', 'freshmark' );
 		}
 
 		return $new_columns;
@@ -82,45 +109,24 @@ class CFR_Admin {
 			return;
 		}
 
-		$is_stale = CFR_Scanner::is_stale( $post );
+		$is_stale = FRESHMARK_Scanner::is_stale( $post );
 		$date     = get_the_modified_date( get_option( 'date_format' ), $post );
 
 		printf(
-			'<span class="cfr-badge %1$s">%2$s</span><br><span class="cfr-badge-date">%3$s</span>',
-			$is_stale ? 'cfr-badge-stale' : 'cfr-badge-fresh',
-			$is_stale ? esc_html__( 'Stale', 'content-freshness-reminder' ) : esc_html__( 'Fresh', 'content-freshness-reminder' ),
+			'<span class="freshmark-badge %1$s">%2$s</span><br><span class="freshmark-badge-date">%3$s</span>',
+			$is_stale ? 'freshmark-badge-stale' : 'freshmark-badge-fresh',
+			$is_stale ? esc_html__( 'Stale', 'freshmark' ) : esc_html__( 'Fresh', 'freshmark' ),
 			esc_html( $date )
 		);
-
-		$this->print_badge_styles_once();
 	}
 
 	/**
-	 * Print the (tiny) badge CSS a single time per page load.
-	 */
-	private function print_badge_styles_once() {
-		static $printed = false;
-
-		if ( $printed ) {
-			return;
-		}
-		$printed = true;
-
-		echo '<style>
-			.cfr-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600;line-height:1.6;}
-			.cfr-badge-stale{background:#fbeaea;color:#a0281f;}
-			.cfr-badge-fresh{background:#eafbea;color:#1f7a2e;}
-			.cfr-badge-date{color:#646970;font-size:12px;}
-		</style>';
-	}
-
-	/**
-	 * Register the Settings > Content Freshness page.
+	 * Register the Settings > Freshmark page.
 	 */
 	public function add_settings_page() {
 		add_options_page(
-			__( 'Content Freshness Reminder', 'content-freshness-reminder' ),
-			__( 'Content Freshness', 'content-freshness-reminder' ),
+			__( 'Freshmark', 'freshmark' ),
+			__( 'Freshmark', 'freshmark' ),
 			'manage_options',
 			self::SETTINGS_SLUG,
 			array( $this, 'render_settings_page' )
@@ -135,7 +141,7 @@ class CFR_Admin {
 	 */
 	public function add_settings_link( $links ) {
 		$url = admin_url( 'options-general.php?page=' . self::SETTINGS_SLUG );
-		array_unshift( $links, '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'content-freshness-reminder' ) . '</a>' );
+		array_unshift( $links, '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'freshmark' ) . '</a>' );
 
 		return $links;
 	}
@@ -146,7 +152,7 @@ class CFR_Admin {
 	public function register_settings() {
 		register_setting(
 			self::SETTINGS_GROUP,
-			CFR_Scanner::OPTION_NAME,
+			FRESHMARK_Scanner::OPTION_NAME,
 			array(
 				'type'              => 'array',
 				'sanitize_callback' => array( $this, 'sanitize_settings' ),
@@ -161,13 +167,13 @@ class CFR_Admin {
 	 * @return array
 	 */
 	public function sanitize_settings( $input ) {
-		$defaults = CFR_Scanner::default_settings();
+		$defaults = FRESHMARK_Scanner::default_settings();
 		$clean    = array();
 
 		$months                    = isset( $input['threshold_months'] ) ? absint( $input['threshold_months'] ) : $defaults['threshold_months'];
 		$clean['threshold_months'] = max( 1, min( 60, $months ) );
 
-		$allowed_types     = array_keys( CFR_Scanner::get_monitorable_post_types() );
+		$allowed_types     = array_keys( FRESHMARK_Scanner::get_monitorable_post_types() );
 		$submitted_types   = isset( $input['post_types'] ) && is_array( $input['post_types'] ) ? array_map( 'sanitize_key', $input['post_types'] ) : array();
 		$clean['post_types'] = array_values( array_intersect( $allowed_types, $submitted_types ) );
 
@@ -177,7 +183,7 @@ class CFR_Admin {
 
 		$clean['email_digest_enabled'] = ! empty( $input['email_digest_enabled'] );
 
-		CFR_Scanner::clear_cache();
+		FRESHMARK_Scanner::clear_cache();
 
 		return $clean;
 	}
@@ -190,41 +196,41 @@ class CFR_Admin {
 			return;
 		}
 
-		$settings   = CFR_Scanner::get_settings();
-		$post_types = CFR_Scanner::get_monitorable_post_types();
+		$settings   = FRESHMARK_Scanner::get_settings();
+		$post_types = FRESHMARK_Scanner::get_monitorable_post_types();
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Content Freshness Reminder', 'content-freshness-reminder' ); ?></h1>
-			<p><?php esc_html_e( 'Get nudged when pages or posts have gone stale so nothing on the site is quietly abandoned.', 'content-freshness-reminder' ); ?></p>
+			<h1><?php esc_html_e( 'Freshmark', 'freshmark' ); ?></h1>
+			<p><?php esc_html_e( 'Get nudged when pages or posts have gone stale so nothing on the site is quietly abandoned.', 'freshmark' ); ?></p>
 			<form method="post" action="options.php">
 				<?php settings_fields( self::SETTINGS_GROUP ); ?>
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row">
-							<label for="cfr_threshold_months"><?php esc_html_e( 'Stale after', 'content-freshness-reminder' ); ?></label>
+							<label for="freshmark_threshold_months"><?php esc_html_e( 'Stale after', 'freshmark' ); ?></label>
 						</th>
 						<td>
 							<input
 								type="number"
-								id="cfr_threshold_months"
-								name="<?php echo esc_attr( CFR_Scanner::OPTION_NAME ); ?>[threshold_months]"
+								id="freshmark_threshold_months"
+								name="<?php echo esc_attr( FRESHMARK_Scanner::OPTION_NAME ); ?>[threshold_months]"
 								value="<?php echo esc_attr( $settings['threshold_months'] ); ?>"
 								min="1"
 								max="60"
 								class="small-text"
 							/>
-							<?php esc_html_e( 'months without an update', 'content-freshness-reminder' ); ?>
+							<?php esc_html_e( 'months without an update', 'freshmark' ); ?>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Monitor', 'content-freshness-reminder' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Monitor', 'freshmark' ); ?></th>
 						<td>
 							<fieldset>
 								<?php foreach ( $post_types as $post_type => $label ) : ?>
 									<label style="display:block;margin-bottom:4px;">
 										<input
 											type="checkbox"
-											name="<?php echo esc_attr( CFR_Scanner::OPTION_NAME ); ?>[post_types][]"
+											name="<?php echo esc_attr( FRESHMARK_Scanner::OPTION_NAME ); ?>[post_types][]"
 											value="<?php echo esc_attr( $post_type ); ?>"
 											<?php checked( in_array( $post_type, $settings['post_types'], true ) ); ?>
 										/>
@@ -235,25 +241,25 @@ class CFR_Admin {
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Weekly email digest', 'content-freshness-reminder' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Weekly email digest', 'freshmark' ); ?></th>
 						<td>
 							<label>
 								<input
 									type="checkbox"
-									name="<?php echo esc_attr( CFR_Scanner::OPTION_NAME ); ?>[email_digest_enabled]"
+									name="<?php echo esc_attr( FRESHMARK_Scanner::OPTION_NAME ); ?>[email_digest_enabled]"
 									value="1"
 									<?php checked( ! empty( $settings['email_digest_enabled'] ) ); ?>
 								/>
 								<?php
 								printf(
 									/* translators: %s: admin email address */
-									esc_html__( 'Email a weekly summary of stale content to %s', 'content-freshness-reminder' ),
+									esc_html__( 'Email a weekly summary of stale content to %s', 'freshmark' ),
 									'<code>' . esc_html( get_option( 'admin_email' ) ) . '</code>'
 								);
 								?>
 							</label>
 							<p class="description">
-								<?php esc_html_e( 'Sent via wp_mail(). Delivery depends on your site\'s mail setup — if emails go missing, install an SMTP plugin (e.g. WP Mail SMTP) to route them through a real mail provider.', 'content-freshness-reminder' ); ?>
+								<?php esc_html_e( 'Sent via wp_mail(). Delivery depends on your site\'s mail setup — if emails go missing, install an SMTP plugin (e.g. WP Mail SMTP) to route them through a real mail provider.', 'freshmark' ); ?>
 							</p>
 						</td>
 					</tr>
@@ -273,8 +279,8 @@ class CFR_Admin {
 		}
 
 		wp_add_dashboard_widget(
-			'cfr_dashboard_widget',
-			__( 'Content Freshness', 'content-freshness-reminder' ),
+			'freshmark_dashboard_widget',
+			__( 'Freshmark', 'freshmark' ),
 			array( $this, 'render_dashboard_widget' )
 		);
 	}
@@ -283,10 +289,10 @@ class CFR_Admin {
 	 * Render the Dashboard widget contents.
 	 */
 	public function render_dashboard_widget() {
-		$stale_posts = CFR_Scanner::get_stale_content( array( 'limit' => 10 ) );
+		$stale_posts = FRESHMARK_Scanner::get_stale_content( array( 'limit' => 10 ) );
 
 		if ( empty( $stale_posts ) ) {
-			echo '<p>' . esc_html__( 'Nothing looks abandoned right now. Nice work keeping things current!', 'content-freshness-reminder' ) . '</p>';
+			echo '<p>' . esc_html__( 'Nothing looks abandoned right now. Nice work keeping things current!', 'freshmark' ) . '</p>';
 			return;
 		}
 
@@ -303,8 +309,8 @@ class CFR_Admin {
 					$title,
 					sprintf(
 						/* translators: %s: month and year, e.g. "March 2025" */
-						esc_html__( "Hasn't been updated since %s", 'content-freshness-reminder' ),
-						esc_html( CFR_Scanner::get_freshness_label( $post ) )
+						esc_html__( "Hasn't been updated since %s", 'freshmark' ),
+						esc_html( FRESHMARK_Scanner::get_freshness_label( $post ) )
 					)
 				)
 			);
@@ -314,7 +320,7 @@ class CFR_Admin {
 		printf(
 			'<p><a href="%1$s">%2$s</a></p>',
 			esc_url( admin_url( 'options-general.php?page=' . self::SETTINGS_SLUG ) ),
-			esc_html__( 'Adjust freshness settings', 'content-freshness-reminder' )
+			esc_html__( 'Adjust freshness settings', 'freshmark' )
 		);
 	}
 
@@ -334,7 +340,7 @@ class CFR_Admin {
 			return;
 		}
 
-		$count = CFR_Scanner::get_stale_count();
+		$count = FRESHMARK_Scanner::get_stale_count();
 
 		if ( $count < 1 ) {
 			return;
@@ -346,38 +352,21 @@ class CFR_Admin {
 				'%d page or post hasn\'t been updated in a while.',
 				'%d pages and posts haven\'t been updated in a while.',
 				$count,
-				'content-freshness-reminder'
+				'freshmark'
 			),
 			$count
 		);
 
 		$nonce = wp_create_nonce( self::NONCE_ACTION );
 		?>
-		<div class="notice notice-warning is-dismissible cfr-notice" data-nonce="<?php echo esc_attr( $nonce ); ?>">
+		<div class="notice notice-warning is-dismissible freshmark-notice" data-nonce="<?php echo esc_attr( $nonce ); ?>">
 			<p>
-				<strong><?php esc_html_e( 'Content Freshness Reminder:', 'content-freshness-reminder' ); ?></strong>
+				<strong><?php esc_html_e( 'Freshmark:', 'freshmark' ); ?></strong>
 				<?php echo esc_html( $message ); ?>
 				<?php echo wp_kses_post( '&nbsp;' ); ?>
-				<a href="#cfr_dashboard_widget"><?php esc_html_e( 'See the details below.', 'content-freshness-reminder' ); ?></a>
+				<a href="#freshmark_dashboard_widget"><?php esc_html_e( 'See the details below.', 'freshmark' ); ?></a>
 			</p>
 		</div>
-		<script>
-		( function() {
-			var notice = document.currentScript.previousElementSibling;
-			if ( ! notice ) {
-				return;
-			}
-			notice.addEventListener( 'click', function( e ) {
-				if ( ! e.target.classList.contains( 'notice-dismiss' ) ) {
-					return;
-				}
-				var data = new FormData();
-				data.append( 'action', 'cfr_dismiss_notice' );
-				data.append( 'nonce', notice.getAttribute( 'data-nonce' ) );
-				fetch( ajaxurl, { method: 'POST', credentials: 'same-origin', body: data } );
-			} );
-		} )();
-		</script>
 		<?php
 	}
 

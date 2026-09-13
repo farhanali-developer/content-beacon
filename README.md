@@ -1,8 +1,8 @@
-# Content Freshness Reminder
+# Freshmark
 
 A lightweight WordPress plugin that flags pages and posts nobody has touched in 6+ months and nudges the owner to update them.
 
-Every agency knows this problem: a client site launches, looks great, and then the About page quietly goes years without an update. Content Freshness Reminder catches that before it becomes embarrassing.
+Every agency knows this problem: a client site launches, looks great, and then the About page quietly goes years without an update. Freshmark catches that before it becomes embarrassing.
 
 ## Features
 
@@ -23,23 +23,23 @@ Every agency knows this problem: a client site launches, looks great, and then t
 
 ### From WordPress.org
 
-Search for "Content Freshness Reminder" in **Plugins → Add New**, install, and activate.
+Search for "Freshmark" in **Plugins → Add New**, install, and activate.
 
 ### Manual / from source
 
 ```bash
-git clone https://github.com/farhanali-developer/content-freshness-reminder.git
+git clone https://github.com/farhanali-developer/freshmark.git
 ```
 
-Copy (or symlink) the `content-freshness-reminder` folder into `wp-content/plugins/`, then activate it from **Plugins → Installed Plugins**.
+Copy (or symlink) the `freshmark` folder into `wp-content/plugins/`, then activate it from **Plugins → Installed Plugins**.
 
 ## Usage
 
-After activating, go to **Settings → Content Freshness** to set the staleness threshold and choose which post types to monitor.
+After activating, go to **Settings → Freshmark** to set the staleness threshold and choose which post types to monitor.
 
 Stale content shows up in two places automatically:
 
-- A **Content Freshness** widget on the WordPress Dashboard, listing the oldest content first
+- A **Freshmark** widget on the WordPress Dashboard, listing the oldest content first
 - A **Freshness** column on the Posts and Pages list tables, with a Fresh/Stale badge next to the last-modified date
 
 If a dismissible notice appears on the Dashboard, dismissing it snoozes it for that user for a week — it reappears if stale content is still there after that.

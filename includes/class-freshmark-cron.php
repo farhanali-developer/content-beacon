@@ -5,19 +5,19 @@
  * Loaded on every request (not just wp-admin) since WP-Cron requests
  * (wp-cron.php) are not admin requests.
  *
- * @package Content_Freshness_Reminder
+ * @package Freshmark
  */
 
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-class CFR_Cron {
+class FRESHMARK_Cron {
 
 	public function __construct() {
 		add_filter( 'cron_schedules', array( $this, 'add_weekly_schedule' ) );
-		add_action( CFR_CRON_HOOK, array( $this, 'maybe_send_digest' ) );
-		add_action( 'save_post', array( 'CFR_Scanner', 'clear_cache' ) );
+		add_action( FRESHMARK_CRON_HOOK, array( $this, 'maybe_send_digest' ) );
+		add_action( 'save_post', array( 'FRESHMARK_Scanner', 'clear_cache' ) );
 		add_action( 'transition_post_status', array( $this, 'clear_cache_on_transition' ), 10, 3 );
 	}
 
@@ -31,7 +31,7 @@ class CFR_Cron {
 		if ( ! isset( $schedules['weekly'] ) ) {
 			$schedules['weekly'] = array(
 				'interval' => WEEK_IN_SECONDS,
-				'display'  => __( 'Once Weekly', 'content-freshness-reminder' ),
+				'display'  => __( 'Once Weekly', 'freshmark' ),
 			);
 		}
 
@@ -47,7 +47,7 @@ class CFR_Cron {
 	 */
 	public function clear_cache_on_transition( $new_status, $old_status, $post ) {
 		if ( $new_status !== $old_status ) {
-			CFR_Scanner::clear_cache();
+			FRESHMARK_Scanner::clear_cache();
 		}
 	}
 
@@ -55,13 +55,13 @@ class CFR_Cron {
 	 * Weekly cron callback: email the site admin a digest of stale content.
 	 */
 	public function maybe_send_digest() {
-		$settings = CFR_Scanner::get_settings();
+		$settings = FRESHMARK_Scanner::get_settings();
 
 		if ( empty( $settings['email_digest_enabled'] ) ) {
 			return;
 		}
 
-		$stale_posts = CFR_Scanner::get_stale_content( array( 'limit' => 50 ) );
+		$stale_posts = FRESHMARK_Scanner::get_stale_content( array( 'limit' => 50 ) );
 
 		if ( empty( $stale_posts ) ) {
 			return;
@@ -71,9 +71,9 @@ class CFR_Cron {
 		foreach ( $stale_posts as $post ) {
 			$lines[] = sprintf(
 				/* translators: 1: post title, 2: last modified month/year, 3: edit link */
-				__( '- "%1$s" — last updated %2$s (%3$s)', 'content-freshness-reminder' ),
+				__( '- "%1$s" — last updated %2$s (%3$s)', 'freshmark' ),
 				html_entity_decode( get_the_title( $post ), ENT_QUOTES ),
-				CFR_Scanner::get_freshness_label( $post ),
+				FRESHMARK_Scanner::get_freshness_label( $post ),
 				get_edit_post_link( $post, 'text' )
 			);
 		}
@@ -81,16 +81,16 @@ class CFR_Cron {
 		$site_name = get_bloginfo( 'name' );
 		$subject   = sprintf(
 			/* translators: 1: site name, 2: number of stale items */
-			__( '[%1$s] %2$d page(s)/post(s) need a content refresh', 'content-freshness-reminder' ),
+			__( '[%1$s] %2$d page(s)/post(s) need a content refresh', 'freshmark' ),
 			$site_name,
 			count( $stale_posts )
 		);
 
-		$body  = __( 'The following content hasn\'t been updated in a while:', 'content-freshness-reminder' ) . "\n\n";
+		$body  = __( 'The following content hasn\'t been updated in a while:', 'freshmark' ) . "\n\n";
 		$body .= implode( "\n", $lines );
 		$body .= "\n\n" . sprintf(
 			/* translators: %s: site name */
-			__( 'Sent by Content Freshness Reminder on %s.', 'content-freshness-reminder' ),
+			__( 'Sent by Freshmark on %s.', 'freshmark' ),
 			$site_name
 		);
 
