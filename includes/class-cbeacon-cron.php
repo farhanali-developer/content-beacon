@@ -5,19 +5,19 @@
  * Loaded on every request (not just wp-admin) since WP-Cron requests
  * (wp-cron.php) are not admin requests.
  *
- * @package Freshmark
+ * @package Content_Beacon
  */
 
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-class FRESHMARK_Cron {
+class CBEACON_Cron {
 
 	public function __construct() {
 		add_filter( 'cron_schedules', array( $this, 'add_weekly_schedule' ) );
-		add_action( FRESHMARK_CRON_HOOK, array( $this, 'maybe_send_digest' ) );
-		add_action( 'save_post', array( 'FRESHMARK_Scanner', 'clear_cache' ) );
+		add_action( CBEACON_CRON_HOOK, array( $this, 'maybe_send_digest' ) );
+		add_action( 'save_post', array( 'CBEACON_Scanner', 'clear_cache' ) );
 		add_action( 'transition_post_status', array( $this, 'clear_cache_on_transition' ), 10, 3 );
 	}
 
@@ -31,7 +31,7 @@ class FRESHMARK_Cron {
 		if ( ! isset( $schedules['weekly'] ) ) {
 			$schedules['weekly'] = array(
 				'interval' => WEEK_IN_SECONDS,
-				'display'  => __( 'Once Weekly', 'freshmark' ),
+				'display'  => __( 'Once Weekly', 'content-beacon' ),
 			);
 		}
 
@@ -47,7 +47,7 @@ class FRESHMARK_Cron {
 	 */
 	public function clear_cache_on_transition( $new_status, $old_status, $post ) {
 		if ( $new_status !== $old_status ) {
-			FRESHMARK_Scanner::clear_cache();
+			CBEACON_Scanner::clear_cache();
 		}
 	}
 
@@ -55,13 +55,13 @@ class FRESHMARK_Cron {
 	 * Weekly cron callback: email the site admin a digest of stale content.
 	 */
 	public function maybe_send_digest() {
-		$settings = FRESHMARK_Scanner::get_settings();
+		$settings = CBEACON_Scanner::get_settings();
 
 		if ( empty( $settings['email_digest_enabled'] ) ) {
 			return;
 		}
 
-		$stale_posts = FRESHMARK_Scanner::get_stale_content( array( 'limit' => 50 ) );
+		$stale_posts = CBEACON_Scanner::get_stale_content( array( 'limit' => 50 ) );
 
 		if ( empty( $stale_posts ) ) {
 			return;
@@ -71,9 +71,9 @@ class FRESHMARK_Cron {
 		foreach ( $stale_posts as $post ) {
 			$lines[] = sprintf(
 				/* translators: 1: post title, 2: last modified month/year, 3: edit link */
-				__( '- "%1$s" — last updated %2$s (%3$s)', 'freshmark' ),
+				__( '- "%1$s" — last updated %2$s (%3$s)', 'content-beacon' ),
 				html_entity_decode( get_the_title( $post ), ENT_QUOTES ),
-				FRESHMARK_Scanner::get_freshness_label( $post ),
+				CBEACON_Scanner::get_freshness_label( $post ),
 				get_edit_post_link( $post, 'text' )
 			);
 		}
@@ -81,16 +81,16 @@ class FRESHMARK_Cron {
 		$site_name = get_bloginfo( 'name' );
 		$subject   = sprintf(
 			/* translators: 1: site name, 2: number of stale items */
-			__( '[%1$s] %2$d page(s)/post(s) need a content refresh', 'freshmark' ),
+			__( '[%1$s] %2$d page(s)/post(s) need a content refresh', 'content-beacon' ),
 			$site_name,
 			count( $stale_posts )
 		);
 
-		$body  = __( 'The following content hasn\'t been updated in a while:', 'freshmark' ) . "\n\n";
+		$body  = __( 'The following content hasn\'t been updated in a while:', 'content-beacon' ) . "\n\n";
 		$body .= implode( "\n", $lines );
 		$body .= "\n\n" . sprintf(
 			/* translators: %s: site name */
-			__( 'Sent by Freshmark on %s.', 'freshmark' ),
+			__( 'Sent by Content Beacon on %s.', 'content-beacon' ),
 			$site_name
 		);
 

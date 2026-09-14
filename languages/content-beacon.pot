@@ -2,140 +2,140 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Freshmark 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/freshmark\n"
+"Project-Id-Version: Content Beacon 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/content-beacon\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-13T18:43:05+00:00\n"
+"POT-Creation-Date: 2026-09-14T11:46:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
-"X-Domain: freshmark\n"
+"X-Domain: content-beacon\n"
 
 #. Plugin Name of the plugin
-#: freshmark.php
-#: admin/class-freshmark-admin.php:128
-#: admin/class-freshmark-admin.php:129
-#: admin/class-freshmark-admin.php:203
-#: admin/class-freshmark-admin.php:283
-msgid "Freshmark"
+#: content-beacon.php
+#: admin/class-cbeacon-admin.php:128
+#: admin/class-cbeacon-admin.php:129
+#: admin/class-cbeacon-admin.php:203
+#: admin/class-cbeacon-admin.php:283
+msgid "Content Beacon"
 msgstr ""
 
 #. Plugin URI of the plugin
-#: freshmark.php
-msgid "https://wordpress.org/plugins/freshmark"
+#: content-beacon.php
+msgid "https://wordpress.org/plugins/content-beacon"
 msgstr ""
 
 #. Description of the plugin
-#: freshmark.php
+#: content-beacon.php
 msgid "Flags pages and posts that haven't been touched in 6+ months and nudges site owners to keep their content fresh."
 msgstr ""
 
 #. Author of the plugin
-#: freshmark.php
+#: content-beacon.php
 msgid "Farhan Ali"
 msgstr ""
 
 #. Author URI of the plugin
-#: freshmark.php
+#: content-beacon.php
 msgid "https://farhanali.me/"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:82
-#: admin/class-freshmark-admin.php:88
+#: admin/class-cbeacon-admin.php:82
+#: admin/class-cbeacon-admin.php:88
 msgid "Freshness"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:118
+#: admin/class-cbeacon-admin.php:118
 msgid "Stale"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:118
+#: admin/class-cbeacon-admin.php:118
 msgid "Fresh"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:144
+#: admin/class-cbeacon-admin.php:144
 msgid "Settings"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:204
+#: admin/class-cbeacon-admin.php:204
 msgid "Get nudged when pages or posts have gone stale so nothing on the site is quietly abandoned."
 msgstr ""
 
-#: admin/class-freshmark-admin.php:210
+#: admin/class-cbeacon-admin.php:210
 msgid "Stale after"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:222
+#: admin/class-cbeacon-admin.php:222
 msgid "months without an update"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:226
+#: admin/class-cbeacon-admin.php:226
 msgid "Monitor"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:244
+#: admin/class-cbeacon-admin.php:244
 msgid "Weekly email digest"
 msgstr ""
 
 #. translators: %s: admin email address
-#: admin/class-freshmark-admin.php:256
+#: admin/class-cbeacon-admin.php:256
 msgid "Email a weekly summary of stale content to %s"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:262
+#: admin/class-cbeacon-admin.php:262
 msgid "Sent via wp_mail(). Delivery depends on your site's mail setup — if emails go missing, install an SMTP plugin (e.g. WP Mail SMTP) to route them through a real mail provider."
 msgstr ""
 
-#: admin/class-freshmark-admin.php:295
+#: admin/class-cbeacon-admin.php:295
 msgid "Nothing looks abandoned right now. Nice work keeping things current!"
 msgstr ""
 
 #. translators: %s: month and year, e.g. "March 2025"
-#: admin/class-freshmark-admin.php:312
+#: admin/class-cbeacon-admin.php:312
 msgid "Hasn't been updated since %s"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:323
+#: admin/class-cbeacon-admin.php:323
 msgid "Adjust freshness settings"
 msgstr ""
 
 #. translators: %d: number of stale posts/pages
-#: admin/class-freshmark-admin.php:351
+#: admin/class-cbeacon-admin.php:351
 msgid "%d page or post hasn't been updated in a while."
 msgid_plural "%d pages and posts haven't been updated in a while."
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/class-freshmark-admin.php:364
-msgid "Freshmark:"
+#: admin/class-cbeacon-admin.php:364
+msgid "Content Beacon:"
 msgstr ""
 
-#: admin/class-freshmark-admin.php:367
+#: admin/class-cbeacon-admin.php:367
 msgid "See the details below."
 msgstr ""
 
-#: includes/class-freshmark-cron.php:34
+#: includes/class-cbeacon-cron.php:34
 msgid "Once Weekly"
 msgstr ""
 
 #. translators: 1: post title, 2: last modified month/year, 3: edit link
-#: includes/class-freshmark-cron.php:74
+#: includes/class-cbeacon-cron.php:74
 msgid "- \"%1$s\" — last updated %2$s (%3$s)"
 msgstr ""
 
 #. translators: 1: site name, 2: number of stale items
-#: includes/class-freshmark-cron.php:84
+#: includes/class-cbeacon-cron.php:84
 msgid "[%1$s] %2$d page(s)/post(s) need a content refresh"
 msgstr ""
 
-#: includes/class-freshmark-cron.php:89
+#: includes/class-cbeacon-cron.php:89
 msgid "The following content hasn't been updated in a while:"
 msgstr ""
 
 #. translators: %s: site name
-#: includes/class-freshmark-cron.php:93
-msgid "Sent by Freshmark on %s."
+#: includes/class-cbeacon-cron.php:93
+msgid "Sent by Content Beacon on %s."
 msgstr ""

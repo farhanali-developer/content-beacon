@@ -3,16 +3,16 @@
  * Core scanning logic shared by the admin notice, dashboard widget,
  * post list columns, and the email digest.
  *
- * @package Freshmark
+ * @package Content_Beacon
  */
 
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-class FRESHMARK_Scanner {
+class CBEACON_Scanner {
 
-	const OPTION_NAME = 'freshmark_settings';
+	const OPTION_NAME = 'cbeacon_settings';
 
 	/**
 	 * Default plugin settings.
@@ -125,14 +125,14 @@ class FRESHMARK_Scanner {
 	 * @return int
 	 */
 	public static function get_stale_count() {
-		$cached = get_transient( 'freshmark_stale_count' );
+		$cached = get_transient( 'cbeacon_stale_count' );
 
 		if ( false !== $cached ) {
 			return (int) $cached;
 		}
 
 		$count = count( self::get_stale_content( array( 'fields' => 'ids' ) ) );
-		set_transient( 'freshmark_stale_count', $count, DAY_IN_SECONDS );
+		set_transient( 'cbeacon_stale_count', $count, DAY_IN_SECONDS );
 
 		return $count;
 	}
@@ -141,7 +141,7 @@ class FRESHMARK_Scanner {
 	 * Clear the cached stale count, e.g. after a post is saved.
 	 */
 	public static function clear_cache() {
-		delete_transient( 'freshmark_stale_count' );
+		delete_transient( 'cbeacon_stale_count' );
 	}
 
 	/**

@@ -1,4 +1,4 @@
-.freshmark-badge {
+.cbeacon-badge {
 	display: inline-block;
 	padding: 2px 8px;
 	border-radius: 3px;
@@ -7,17 +7,17 @@
 	line-height: 1.6;
 }
 
-.freshmark-badge-stale {
+.cbeacon-badge-stale {
 	background: #fbeaea;
 	color: #a0281f;
 }
 
-.freshmark-badge-fresh {
+.cbeacon-badge-fresh {
 	background: #eafbea;
 	color: #1f7a2e;
 }
 
-.freshmark-badge-date {
+.cbeacon-badge-date {
 	color: #646970;
 	font-size: 12px;
 }

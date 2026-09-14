@@ -3,20 +3,20 @@
  * Admin-side UI: settings page, dashboard widget, admin notice, and the
  * post list "Freshness" column.
  *
- * @package Freshmark
+ * @package Content_Beacon
  */
 
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-class FRESHMARK_Admin {
+class CBEACON_Admin {
 
-	const COLUMN_KEY       = 'freshmark_freshness';
-	const SETTINGS_GROUP   = 'freshmark_settings_group';
-	const SETTINGS_SLUG    = 'freshmark-settings';
-	const DISMISS_META_KEY = 'freshmark_notice_dismissed_until';
-	const NONCE_ACTION     = 'freshmark_dismiss_notice';
+	const COLUMN_KEY       = 'cbeacon_freshness';
+	const SETTINGS_GROUP   = 'cbeacon_settings_group';
+	const SETTINGS_SLUG    = 'cbeacon-settings';
+	const DISMISS_META_KEY = 'cbeacon_notice_dismissed_until';
+	const NONCE_ACTION     = 'cbeacon_dismiss_notice';
 
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
@@ -24,8 +24,8 @@ class FRESHMARK_Admin {
 		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
 		add_action( 'admin_notices', array( $this, 'maybe_render_notice' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-		add_action( 'wp_ajax_freshmark_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
-		add_filter( 'plugin_action_links_' . FRESHMARK_PLUGIN_BASENAME, array( $this, 'add_settings_link' ) );
+		add_action( 'wp_ajax_cbeacon_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
+		add_filter( 'plugin_action_links_' . CBEACON_PLUGIN_BASENAME, array( $this, 'add_settings_link' ) );
 
 		$this->register_column_hooks();
 	}
@@ -38,19 +38,19 @@ class FRESHMARK_Admin {
 	public function enqueue_assets( $hook_suffix ) {
 		if ( 'edit.php' === $hook_suffix ) {
 			wp_enqueue_style(
-				'freshmark-admin',
-				FRESHMARK_PLUGIN_URL . 'admin/css/freshmark-admin.css',
+				'cbeacon-admin',
+				CBEACON_PLUGIN_URL . 'admin/css/cbeacon-admin.css',
 				array(),
-				FRESHMARK_VERSION
+				CBEACON_VERSION
 			);
 		}
 
 		if ( 'index.php' === $hook_suffix ) {
 			wp_enqueue_script(
-				'freshmark-admin',
-				FRESHMARK_PLUGIN_URL . 'admin/js/freshmark-admin.js',
+				'cbeacon-admin',
+				CBEACON_PLUGIN_URL . 'admin/js/cbeacon-admin.js',
 				array(),
-				FRESHMARK_VERSION,
+				CBEACON_VERSION,
 				true
 			);
 		}
@@ -60,7 +60,7 @@ class FRESHMARK_Admin {
 	 * Wire up the "Freshness" column for every monitored post type.
 	 */
 	private function register_column_hooks() {
-		$settings = FRESHMARK_Scanner::get_settings();
+		$settings = CBEACON_Scanner::get_settings();
 
 		foreach ( $settings['post_types'] as $post_type ) {
 			add_filter( "manage_{$post_type}_posts_columns", array( $this, 'add_freshness_column' ) );
@@ -79,13 +79,13 @@ class FRESHMARK_Admin {
 
 		foreach ( $columns as $key => $label ) {
 			if ( 'date' === $key ) {
-				$new_columns[ self::COLUMN_KEY ] = __( 'Freshness', 'freshmark' );
+				$new_columns[ self::COLUMN_KEY ] = __( 'Freshness', 'content-beacon' );
 			}
 			$new_columns[ $key ] = $label;
 		}
 
 		if ( ! isset( $new_columns[ self::COLUMN_KEY ] ) ) {
-			$new_columns[ self::COLUMN_KEY ] = __( 'Freshness', 'freshmark' );
+			$new_columns[ self::COLUMN_KEY ] = __( 'Freshness', 'content-beacon' );
 		}
 
 		return $new_columns;
@@ -109,24 +109,24 @@ class FRESHMARK_Admin {
 			return;
 		}
 
-		$is_stale = FRESHMARK_Scanner::is_stale( $post );
+		$is_stale = CBEACON_Scanner::is_stale( $post );
 		$date     = get_the_modified_date( get_option( 'date_format' ), $post );
 
 		printf(
-			'<span class="freshmark-badge %1$s">%2$s</span><br><span class="freshmark-badge-date">%3$s</span>',
-			$is_stale ? 'freshmark-badge-stale' : 'freshmark-badge-fresh',
-			$is_stale ? esc_html__( 'Stale', 'freshmark' ) : esc_html__( 'Fresh', 'freshmark' ),
+			'<span class="cbeacon-badge %1$s">%2$s</span><br><span class="cbeacon-badge-date">%3$s</span>',
+			$is_stale ? 'cbeacon-badge-stale' : 'cbeacon-badge-fresh',
+			$is_stale ? esc_html__( 'Stale', 'content-beacon' ) : esc_html__( 'Fresh', 'content-beacon' ),
 			esc_html( $date )
 		);
 	}
 
 	/**
-	 * Register the Settings > Freshmark page.
+	 * Register the Settings > Content Beacon page.
 	 */
 	public function add_settings_page() {
 		add_options_page(
-			__( 'Freshmark', 'freshmark' ),
-			__( 'Freshmark', 'freshmark' ),
+			__( 'Content Beacon', 'content-beacon' ),
+			__( 'Content Beacon', 'content-beacon' ),
 			'manage_options',
 			self::SETTINGS_SLUG,
 			array( $this, 'render_settings_page' )
@@ -141,7 +141,7 @@ class FRESHMARK_Admin {
 	 */
 	public function add_settings_link( $links ) {
 		$url = admin_url( 'options-general.php?page=' . self::SETTINGS_SLUG );
-		array_unshift( $links, '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'freshmark' ) . '</a>' );
+		array_unshift( $links, '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'content-beacon' ) . '</a>' );
 
 		return $links;
 	}
@@ -152,7 +152,7 @@ class FRESHMARK_Admin {
 	public function register_settings() {
 		register_setting(
 			self::SETTINGS_GROUP,
-			FRESHMARK_Scanner::OPTION_NAME,
+			CBEACON_Scanner::OPTION_NAME,
 			array(
 				'type'              => 'array',
 				'sanitize_callback' => array( $this, 'sanitize_settings' ),
@@ -167,13 +167,13 @@ class FRESHMARK_Admin {
 	 * @return array
 	 */
 	public function sanitize_settings( $input ) {
-		$defaults = FRESHMARK_Scanner::default_settings();
+		$defaults = CBEACON_Scanner::default_settings();
 		$clean    = array();
 
 		$months                    = isset( $input['threshold_months'] ) ? absint( $input['threshold_months'] ) : $defaults['threshold_months'];
 		$clean['threshold_months'] = max( 1, min( 60, $months ) );
 
-		$allowed_types     = array_keys( FRESHMARK_Scanner::get_monitorable_post_types() );
+		$allowed_types     = array_keys( CBEACON_Scanner::get_monitorable_post_types() );
 		$submitted_types   = isset( $input['post_types'] ) && is_array( $input['post_types'] ) ? array_map( 'sanitize_key', $input['post_types'] ) : array();
 		$clean['post_types'] = array_values( array_intersect( $allowed_types, $submitted_types ) );
 
@@ -183,7 +183,7 @@ class FRESHMARK_Admin {
 
 		$clean['email_digest_enabled'] = ! empty( $input['email_digest_enabled'] );
 
-		FRESHMARK_Scanner::clear_cache();
+		CBEACON_Scanner::clear_cache();
 
 		return $clean;
 	}
@@ -196,41 +196,41 @@ class FRESHMARK_Admin {
 			return;
 		}
 
-		$settings   = FRESHMARK_Scanner::get_settings();
-		$post_types = FRESHMARK_Scanner::get_monitorable_post_types();
+		$settings   = CBEACON_Scanner::get_settings();
+		$post_types = CBEACON_Scanner::get_monitorable_post_types();
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Freshmark', 'freshmark' ); ?></h1>
-			<p><?php esc_html_e( 'Get nudged when pages or posts have gone stale so nothing on the site is quietly abandoned.', 'freshmark' ); ?></p>
+			<h1><?php esc_html_e( 'Content Beacon', 'content-beacon' ); ?></h1>
+			<p><?php esc_html_e( 'Get nudged when pages or posts have gone stale so nothing on the site is quietly abandoned.', 'content-beacon' ); ?></p>
 			<form method="post" action="options.php">
 				<?php settings_fields( self::SETTINGS_GROUP ); ?>
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row">
-							<label for="freshmark_threshold_months"><?php esc_html_e( 'Stale after', 'freshmark' ); ?></label>
+							<label for="cbeacon_threshold_months"><?php esc_html_e( 'Stale after', 'content-beacon' ); ?></label>
 						</th>
 						<td>
 							<input
 								type="number"
-								id="freshmark_threshold_months"
-								name="<?php echo esc_attr( FRESHMARK_Scanner::OPTION_NAME ); ?>[threshold_months]"
+								id="cbeacon_threshold_months"
+								name="<?php echo esc_attr( CBEACON_Scanner::OPTION_NAME ); ?>[threshold_months]"
 								value="<?php echo esc_attr( $settings['threshold_months'] ); ?>"
 								min="1"
 								max="60"
 								class="small-text"
 							/>
-							<?php esc_html_e( 'months without an update', 'freshmark' ); ?>
+							<?php esc_html_e( 'months without an update', 'content-beacon' ); ?>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Monitor', 'freshmark' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Monitor', 'content-beacon' ); ?></th>
 						<td>
 							<fieldset>
 								<?php foreach ( $post_types as $post_type => $label ) : ?>
 									<label style="display:block;margin-bottom:4px;">
 										<input
 											type="checkbox"
-											name="<?php echo esc_attr( FRESHMARK_Scanner::OPTION_NAME ); ?>[post_types][]"
+											name="<?php echo esc_attr( CBEACON_Scanner::OPTION_NAME ); ?>[post_types][]"
 											value="<?php echo esc_attr( $post_type ); ?>"
 											<?php checked( in_array( $post_type, $settings['post_types'], true ) ); ?>
 										/>
@@ -241,25 +241,25 @@ class FRESHMARK_Admin {
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Weekly email digest', 'freshmark' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Weekly email digest', 'content-beacon' ); ?></th>
 						<td>
 							<label>
 								<input
 									type="checkbox"
-									name="<?php echo esc_attr( FRESHMARK_Scanner::OPTION_NAME ); ?>[email_digest_enabled]"
+									name="<?php echo esc_attr( CBEACON_Scanner::OPTION_NAME ); ?>[email_digest_enabled]"
 									value="1"
 									<?php checked( ! empty( $settings['email_digest_enabled'] ) ); ?>
 								/>
 								<?php
 								printf(
 									/* translators: %s: admin email address */
-									esc_html__( 'Email a weekly summary of stale content to %s', 'freshmark' ),
+									esc_html__( 'Email a weekly summary of stale content to %s', 'content-beacon' ),
 									'<code>' . esc_html( get_option( 'admin_email' ) ) . '</code>'
 								);
 								?>
 							</label>
 							<p class="description">
-								<?php esc_html_e( 'Sent via wp_mail(). Delivery depends on your site\'s mail setup — if emails go missing, install an SMTP plugin (e.g. WP Mail SMTP) to route them through a real mail provider.', 'freshmark' ); ?>
+								<?php esc_html_e( 'Sent via wp_mail(). Delivery depends on your site\'s mail setup — if emails go missing, install an SMTP plugin (e.g. WP Mail SMTP) to route them through a real mail provider.', 'content-beacon' ); ?>
 							</p>
 						</td>
 					</tr>
@@ -279,8 +279,8 @@ class FRESHMARK_Admin {
 		}
 
 		wp_add_dashboard_widget(
-			'freshmark_dashboard_widget',
-			__( 'Freshmark', 'freshmark' ),
+			'cbeacon_dashboard_widget',
+			__( 'Content Beacon', 'content-beacon' ),
 			array( $this, 'render_dashboard_widget' )
 		);
 	}
@@ -289,10 +289,10 @@ class FRESHMARK_Admin {
 	 * Render the Dashboard widget contents.
 	 */
 	public function render_dashboard_widget() {
-		$stale_posts = FRESHMARK_Scanner::get_stale_content( array( 'limit' => 10 ) );
+		$stale_posts = CBEACON_Scanner::get_stale_content( array( 'limit' => 10 ) );
 
 		if ( empty( $stale_posts ) ) {
-			echo '<p>' . esc_html__( 'Nothing looks abandoned right now. Nice work keeping things current!', 'freshmark' ) . '</p>';
+			echo '<p>' . esc_html__( 'Nothing looks abandoned right now. Nice work keeping things current!', 'content-beacon' ) . '</p>';
 			return;
 		}
 
@@ -309,8 +309,8 @@ class FRESHMARK_Admin {
 					$title,
 					sprintf(
 						/* translators: %s: month and year, e.g. "March 2025" */
-						esc_html__( "Hasn't been updated since %s", 'freshmark' ),
-						esc_html( FRESHMARK_Scanner::get_freshness_label( $post ) )
+						esc_html__( "Hasn't been updated since %s", 'content-beacon' ),
+						esc_html( CBEACON_Scanner::get_freshness_label( $post ) )
 					)
 				)
 			);
@@ -320,7 +320,7 @@ class FRESHMARK_Admin {
 		printf(
 			'<p><a href="%1$s">%2$s</a></p>',
 			esc_url( admin_url( 'options-general.php?page=' . self::SETTINGS_SLUG ) ),
-			esc_html__( 'Adjust freshness settings', 'freshmark' )
+			esc_html__( 'Adjust freshness settings', 'content-beacon' )
 		);
 	}
 
@@ -340,7 +340,7 @@ class FRESHMARK_Admin {
 			return;
 		}
 
-		$count = FRESHMARK_Scanner::get_stale_count();
+		$count = CBEACON_Scanner::get_stale_count();
 
 		if ( $count < 1 ) {
 			return;
@@ -352,19 +352,19 @@ class FRESHMARK_Admin {
 				'%d page or post hasn\'t been updated in a while.',
 				'%d pages and posts haven\'t been updated in a while.',
 				$count,
-				'freshmark'
+				'content-beacon'
 			),
 			$count
 		);
 
 		$nonce = wp_create_nonce( self::NONCE_ACTION );
 		?>
-		<div class="notice notice-warning is-dismissible freshmark-notice" data-nonce="<?php echo esc_attr( $nonce ); ?>">
+		<div class="notice notice-warning is-dismissible cbeacon-notice" data-nonce="<?php echo esc_attr( $nonce ); ?>">
 			<p>
-				<strong><?php esc_html_e( 'Freshmark:', 'freshmark' ); ?></strong>
+				<strong><?php esc_html_e( 'Content Beacon:', 'content-beacon' ); ?></strong>
 				<?php echo esc_html( $message ); ?>
 				<?php echo wp_kses_post( '&nbsp;' ); ?>
-				<a href="#freshmark_dashboard_widget"><?php esc_html_e( 'See the details below.', 'freshmark' ); ?></a>
+				<a href="#cbeacon_dashboard_widget"><?php esc_html_e( 'See the details below.', 'content-beacon' ); ?></a>
 			</p>
 		</div>
 		<?php
